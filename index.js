@@ -1,26 +1,33 @@
 const express = require('express');
 const cors = require('cors');
-const { Xendit, Invoice } = require('xendit-node');
+const { Xendit } = require('xendit-node');
 
 const app = express();
-app.use(cors({
-  origin: 'https://880e4b96-cd86-4ec3-887b-fde4f4221261.app-preview.com',
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
+
 app.use(express.json());
 
 const xenditClient = new Xendit({ secretKey: process.env.XENDIT_SECRET_KEY });
-const { Invoice: InvoiceClient } = xenditClient;
+
+app.get('/', (req, res) => {
+  res.json({ status: 'Backend running' });
+});
 
 app.post('/api/orders', async (req, res) => {
   try {
     const { orderNumber, amount, customerName, customerEmail } = req.body;
-    const invoice = await InvoiceClient.createInvoice({
+    const invoice = await xenditClient.Invoice.createInvoice({
       externalId: orderNumber,
       amount: amount,
       payerEmail: customerEmail,
-      description: `Order ${orderNumber} - Toga Safety Online Shop`,
+      description: `Order ${orderNumber}`,
     });
     res.json({ success: true, invoiceUrl: invoice.invoice_url, invoiceId: invoice.id });
   } catch (err) {
