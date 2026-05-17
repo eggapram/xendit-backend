@@ -3,7 +3,11 @@ const cors = require('cors');
 const { Xendit, Invoice } = require('xendit-node');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: 'https://880e4b96-cd86-4ec3-887b-fde4f4221261.app-preview.com',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 const xenditClient = new Xendit({ secretKey: process.env.XENDIT_SECRET_KEY });
